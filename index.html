@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Három döntés</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect x=%2214%22 y=%2214%22 width=%2272%22 height=%2272%22 rx=%228%22 fill=%22none%22 stroke=%22%231c2333%22 stroke-width=%2214%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/labor.css">
+</head>
+<body>
+<main class="wrap" id="app"></main>
+<script src="assets/config.js"></script>
+<script src="assets/api.js"></script>
+<script src="assets/labor.js"></script>
+<script>
+(function () {
+  'use strict';
+  var L = window.Labor, API = window.LabAPI;
+  var key = 'lab-v-' + API.session(), v = null;   // a beosztás újratöltéskor is megmarad
+  try { v = JSON.parse(localStorage.getItem(key)); } catch (e) {}
+  if (!v || !v.grp) { v = L.assign(); try { localStorage.setItem(key, JSON.stringify(v)); } catch (e) {} }
+  L.mountStudent(document.getElementById('app'), v, function (ans, status) {
+    if (!API.enabled()) return;
+    status.className = 'status'; status.textContent = 'Küldés…';
+    API.submit(ans).then(function () {
+      status.className = 'status ok'; status.textContent = 'A válaszaid megérkeztek.';
+    }).catch(function (e) {
+      status.className = 'status err'; status.textContent = 'A küldés nem sikerült (' + e.message + '). Szólj az oktatónak.';
+    });
+  });
+})();
+</script>
+</body>
+</html>

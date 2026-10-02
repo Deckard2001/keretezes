@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Három döntés – kivetítő</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect x=%2214%22 y=%2214%22 width=%2272%22 height=%2272%22 rx=%228%22 fill=%22none%22 stroke=%22%231c2333%22 stroke-width=%2214%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/labor.css">
+<script src="assets/qrcode.js"></script>
+</head>
+<body>
+<div id="demoBanner" class="demo-banner" hidden>Demó adatok – ez nem a csoport válasza.</div>
+<div class="flab">
+  <header class="flab-head">
+    <div class="qr" id="qr"></div>
+    <div>
+      <h1>Három döntés</h1>
+      <div class="url" id="url"></div>
+      <div class="row">
+        <label class="muted" for="session" style="font-size:.85rem">Csoportkód</label>
+        <input class="session-input" id="session" autocomplete="off" spellcheck="false">
+        <button class="btn-outline" id="newSession">Új csoport</button>
+        <button class="btn-outline" id="demo">Demó adatok</button>
+        <button class="btn-outline" id="csv">CSV</button>
+      </div>
+    </div>
+    <div class="flab-count"><div class="count" id="count">0</div><div class="muted">kitöltő</div><p class="status" id="status"></p></div>
+  </header>
+  <main class="rounds" id="rounds"></main>
+</div>
+<script src="assets/config.js"></script>
+<script src="assets/api.js"></script>
+<script src="assets/labor.js"></script>
+<script>
+(function () {
+  'use strict';
+  var L = window.Labor, API = window.LabAPI;
+  var $ = function (id) { return document.getElementById(id); };
+  var rows = [], demo = false, session = API.session(), board = L.Board($('rounds'));
+  $('session').value = session;
+  function renderQR() {
+    var u = location.href.split('?')[0].replace(/[^/]*$/, '') + 'index.html?s=' + encodeURIComponent(session);
+    var q = qrcode(0, 'M'); q.addData(u); q.make();
+    $('qr').innerHTML = q.createSvgTag({ cellSize: 5, margin: 2, scalable: true }); $('url').textContent = u;
+  }
+  function render() { $('count').textContent = rows.length; board.render(rows); }
+  function refresh() {
+    if (demo) return;
+    if (!API.enabled()) {
+      $('status').className = 'status err';
+      $('status').textContent = 'Nincs beállítva háttér (APPS_SCRIPT_URL). Próbáld ki a Demó adatokkal.';
+      render(); return;
+    }
+    API.list(session).then(function (r) {
+      rows = r; $('status').className = 'status'; $('status').textContent = 'Frissítve: ' + new Date().toLocaleTimeString('hu-HU'); render();
+    }).catch(function (e) { $('status').className = 'status err'; $('status').textContent = 'Hiba: ' + e.message; });
+  }
+  function setSession(s) {
+    session = s.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40) || 'ora1';
+    $('session').value = session; history.replaceState(null, '', location.pathname + '?s=' + encodeURIComponent(session));
+    demo = false; $('demoBanner').hidden = true; $('demo').textContent = 'Demó adatok'; rows = []; board.reset(); renderQR(); refresh();
+  }
+  $('session').addEventListener('change', function () { setSession(this.value); });
+  $('newSession').addEventListener('click', function () {
+    var d = new Date(); setSession('lab' + (d.getMonth() + 1) + String(d.getDate()).padStart(2, '0') + '-' + Math.random().toString(36).slice(2, 5));
+  });
+  $('demo').addEventListener('click', function () {
+    demo = !demo; $('demoBanner').hidden = !demo; this.textContent = demo ? 'Valódi adatok' : 'Demó adatok';
+    if (demo) { rows = L.demoRows(36); render(); } else { rows = []; refresh(); }
+  });
+  $('csv').addEventListener('click', function () {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([L.csv(rows)], { type: 'text/csv' })); a.download = 'harom_dontes_' + session + '.csv'; a.click();
+  });
+  renderQR(); refresh(); setInterval(refresh, 5000);
+})();
+</script>
+</body>
+</html>

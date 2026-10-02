@@ -43,7 +43,7 @@ A **Demó adatok** gombbal háttér nélkül is kipróbálhatod a kivetítőt (3
 Háttér nélkül a hallgatók ki tudják tölteni, de a válaszok nem jutnak el a kivetítőhöz.
 
 1. Hozz létre egy üres Google Táblázatot, és nyisd meg: Bővítmények → Apps Script.
-2. Másold be az `apps_script/Code.gs` tartalmát, és mentsd el.
+2. Másold be az `apps_script/Code.gs` tartalmát ([nyers változat](https://raw.githubusercontent.com/Deckard2001/keretezes/main/apps_script/Code.gs)), és mentsd el.
 3. Telepítés → Új telepítés → típus: **Webalkalmazás**. Futtatás mint: *Én*. Hozzáférés: **Bárki**. Engedélyezd a hozzáférést.
 4. A kapott `…/exec` URL-t írd be az `assets/config.js` fájlba (`APPS_SCRIPT_URL`), és commitold.
 
